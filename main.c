@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define MAX 9 // Maksimum aday sayisi
+#define MAX 30 // Maksimum aday sayisi
 
 // preferences[i][j] : i adayini j adayina tercih eden kisi sayisi
 int preferences[MAX][MAX];
@@ -169,15 +169,13 @@ int is_cycle(int start, int end)
         return 1;
     }
 
-    int cycle = 0;
-
     for(int i = 0; i < candidate_count; i++) {
         if(locked[start][i]) {
-            cycle = is_cycle(i, end); // ayni fonksiyonu su anki node'a bagli tum node'lar icin cagir
+            return is_cycle(i, end); // ayni fonksiyonu su anki node'a bagli tum node'lar icin cagir
         }
     }
 
-    return cycle;
+    return 0; // dongu olusmuyor
 }
 
 // pair'lari sirayla donguye sebep olmayacak sekilde kilitler
