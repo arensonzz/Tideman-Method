@@ -168,10 +168,14 @@ int is_cycle(int start, int end)
     if(start == end) { // bir yol bulundu
         return 1;
     }
+    int cycle = 0;
 
     for(int i = 0; i < candidate_count; i++) {
         if(locked[start][i]) {
-            return is_cycle(i, end); // ayni fonksiyonu su anki node'a bagli tum node'lar icin cagir
+            cycle = is_cycle(i, end); // ayni fonksiyonu su anki node'a bagli tum node'lar icin cagir
+        }
+        if(cycle) {
+            return 1;
         }
     }
 
