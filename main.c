@@ -1,14 +1,14 @@
 #include <stdio.h>
 
-#define MAX 30 // Maksimum aday sayisi
+#define MAX 30 // Maximum number of candidates
 
-// preferences[i][j] : i adayini j adayina tercih eden kisi sayisi
+// preferences[i][j] : number of voters who prefer candidate i over candidate j
 int preferences[MAX][MAX];
 
-// locked[i][j] : 1 ise yonlu graph'ta i adayindan j adayina dogru ok vardir
+// locked[i][j] : if it's 1, there's an arrow in the graph from i to j
 int locked[MAX][MAX];
 
-int pointed[MAX]; // kendilerine isaret eden en az bir ok bulunan adaylar
+int pointed[MAX]; // candidates with at least 1 arrow pointing towards them
 
 typedef struct pair {
     int winner;
@@ -43,9 +43,9 @@ int main()
     printf("Number of voters: ");
     scanf("%d", &voter_count);
 
-    // secmenlerin oylari aliniyor
+    // getting each voter's votes
     for(int i = 0; i < voter_count; i++) {
-        // ranks[i] : secmenin i. tercihi (ranks[0] ilk tercih, ranks[1] 2. tercih vb.)
+        // ranks[i] : i'th preference of the voter (ranks[0] first, ranks[1] second, etc.)
         int ranks[candidate_count];
 
         printf("Ranks: ");
@@ -84,7 +84,7 @@ int main()
     return 0;
 }
 
-// Formatli bicimde matris yazdirma
+// Print a matrix formatted
 void f_mtrx_print(int mtrx[][MAX], int nrows, int ncolumns)
 {
     printf("     ");
@@ -105,7 +105,7 @@ void f_mtrx_print(int mtrx[][MAX], int nrows, int ncolumns)
     }
 }
 
-// Bir secmenin oylari verildiginde, ranks[] dizisine gore preferences matrisini gunceller
+// Given one voter's votes, updates preferences according to that
 void record_preferences(int ranks[])
 {
     for(int i = candidate_count - 2; i >= 0; i--) {
@@ -116,13 +116,13 @@ void record_preferences(int ranks[])
     return;
 }
 
-// Biri digerine tercih edilen adaylardan pair olusturur
+// Makes pairs from the candidates which one is preffered over other
 void add_pairs(void)
 {
     for(int i = 0; i < candidate_count - 1; i++) {
         for(int j = i + 1; j < candidate_count; j++) {
             int winner, loser;
-            // i ve j arasinda preferences matrisine bakarak winner-loser belirle, esitlik durumunda pair olusturma
+
             if(preferences[i][j] > preferences[j][i]) {
                 winner = i;
                 loser = j;
@@ -130,9 +130,9 @@ void add_pairs(void)
                 winner = j;
                 loser = i;
             } else {
-                continue; // esitlik durumunda atla
+                continue; // skip pair if there's a tie
             }
-            // olusturulacak pair'in winner-loser atamalarini yap, pair sayisini artir
+
             pairs[pair_count].winner = winner;
             pairs[pair_count++].loser = loser;
         }
@@ -140,13 +140,13 @@ void add_pairs(void)
     return;
 }
 
-// pair'lari en yuksek farkla kazanandan en az farkla kazanana dogru sirala
+// Sort pairs according to strength of victory in the decreasing order
 void sort_pairs(void)
 {
     for(int i = 0; i < pair_count - 1; i++) {
         int max = i;
         for(int j = i + 1; j < pair_count; j++) {
-            // ne kadar farkla kazandigina preferences matrisinden bakiyoruz
+            // Get the strength of victory from the preferences matrix
             int j_score = preferences[pairs[j].winner][pairs[j].loser];
             int max_score = preferences[pairs[max].winner][pairs[max].loser];
 
@@ -161,28 +161,27 @@ void sort_pairs(void)
     return;
 }
 
-// pair'in kaybedeninden kazananina dogru bir yol var mi kontrol eder, eger varsa 1 dondurur
-// boyle bir yol graph'ta dongu olusmasina sebep olur
+// Checks if there's a path from the pair's loser to winner
 int is_cycle(int start, int end)
 {
-    if(start == end) { // bir yol bulundu
+    if(start == end) { // there's a path
         return 1;
     }
     int cycle = 0;
 
     for(int i = 0; i < candidate_count; i++) {
         if(locked[start][i]) {
-            cycle = is_cycle(i, end); // ayni fonksiyonu su anki node'a bagli tum node'lar icin cagir
+            cycle = is_cycle(i, end); // call the same function for the nodes connected to the current node
         }
         if(cycle) {
             return 1;
         }
     }
 
-    return 0; // dongu olusmuyor
+    return 0; // no cycle
 }
 
-// pair'lari sirayla donguye sebep olmayacak sekilde kilitler
+// Locks pairs without causing a cycle in the graph
 void lock_pairs(void)
 {
     if(pair_count > 0) {
@@ -194,7 +193,7 @@ void lock_pairs(void)
         int winner = pairs[i].winner;
         int loser = pairs[i].loser;
 
-        // pair'i kilitlemek donguye sebep olacak mi kontrol et
+        // Check if locking will cause a cycle
         if(!is_cycle(loser, winner)) {
             locked[winner][loser] = 1;
             pointed[loser] = 1;
@@ -204,7 +203,7 @@ void lock_pairs(void)
     return;
 }
 
-// Secimin kazananini ekrana yazar
+// Prints the winner of the election
 void print_winner(void)
 {
     for(int i = 0; i < candidate_count; i++) {
